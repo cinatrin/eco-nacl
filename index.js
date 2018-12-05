@@ -34,13 +34,14 @@ function handleEvent(event) {
     // ignore non-text-message event
     return Promise.resolve(null);
   }
+  const {text:msg} = event.message;
 
   // create a echoing text message
   //const echo = { type: 'text', text: event.message.text };
-  const echo = { type: 'text', text: 'hello'};
+  let text = `Hello, you sent a message with length=${msg.length}`;
 
   // use reply API
-  return client.replyMessage(event.replyToken, echo);
+  return client.replyMessage(event.replyToken, {type:'text', text});
 }
 
 // listen on port
