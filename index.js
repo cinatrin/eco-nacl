@@ -46,11 +46,14 @@ async function handleEvent(event) {
       case 'lv':
         if(paras.length<2) return;
         const [lvtype, exp] = paras;
-        const [[o]] = await db.query(`
-          SELECT lv+LEAST(FLOOR((?-cexp)/nexp*1e3)/1e3,0.999) lvf
-          FROM experience WHERE lvtype=? AND ?>=cexp ORDER BY lv DESC LIMIT 1`,
-          [exp, lvtype, exp]);
-        return o? o.lvf: 'Invalid parameters!!!!';
+        try{
+          const [[o]] = await db.query(`
+            SELECT lv+LEAST(FLOOR((?-cexp)/nexp*1e3)/1e3,0.999) lvf
+            FROM experience WHERE lvtype=? AND ?>=cexp
+            ORDER BY lv DESC LIMIT 1`,
+            [exp, lvtype, exp]);
+          return o? o.lvf.toFixed(3): 'Invalid parameters!!!!';
+        }catch(err){return 'Error@query!!!!\n'+err}
     }})();
     if(!text) text='Invalid cmd';
   }
