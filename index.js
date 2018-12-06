@@ -35,12 +35,12 @@ function handleEvent(event) {
     return Promise.resolve(null);
   }
   const {text:msg} = event.message;
-  var text
-  if (msg.[0] == '\\' ) {
+  var text;
+  if (msg[0] == '\\' ) {
     //method
     if (msg.substring(1,5) == 'exp(') {
-      var exp = msg.substring(5,msg.length-1).split(",")
-      text = String(exp[0]+":"+exp[1])
+      var exp = msg.substring(5,msg.length-1).split(",");
+      text = String(exp[0]+":"+exp[1]);
     }
   }
   // create a echoing text message
