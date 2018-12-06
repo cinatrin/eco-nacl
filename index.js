@@ -4,6 +4,12 @@ const line = require('@line/bot-sdk');
 const express = require('express');
 let db;
 
+const cmdpfx='@@', cmdpfxlen=cmdpfx.length;
+const helpMsg = [
+  '@@help',
+  '@@lv <lvtype> <exp>',
+].join('\n');
+
 // create LINE SDK config from env variables
 const config = {
   channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN,
@@ -36,7 +42,6 @@ async function handleEvent(event) {
     return Promise.resolve(null);
   }
   const {text:msg} = event.message;
-  const cmdpfx='@@', cmdpfxlen=cmdpfx.length;
   var text, ptr;
   if(msg.startsWith(cmdpfx))
   {
@@ -55,8 +60,8 @@ async function handleEvent(event) {
             [exp, lvtype, exp]);
           return o? o.lvf.toFixed(3): 'Invalid parameters!!!!';
         }catch(err){return 'Error@query!!!!\n'+err}
-    }})();
-    if(!text) text='Invalid cmd';
+      case 'help': return helpMsg;
+    }})() || helpMsg;
   }
   else if (msg[0] == '\\' ) {
     //method
