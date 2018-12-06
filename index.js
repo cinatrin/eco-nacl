@@ -43,6 +43,7 @@ async function handleEvent(event) {
     const [cmd, ...paras] = msg.substring(cmdpfxlen).trim().split(/\s+/);
     text = await (async()=>{switch(cmd)
     {
+      case '': return '@@';
       case 'lv':
         if(paras.length<2) return;
         const [lvtype, exp] = paras;
