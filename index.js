@@ -5,6 +5,7 @@ const express = require('express');
 let db;
 
 const cmdpfx='@@', cmdpfxlen=cmdpfx.length;
+const cmdsfx='@@', cmdsfxlen=cmdsfx.length;
 const helpMsg = [
   '@@help',
   '@@lv <lvtype> <exp>',
@@ -34,6 +35,26 @@ app.post('/callback', line.middleware(config), (req, res) => {
       res.status(500).end();
     });
 });
+const {DEBUG} = process.env;
+if(DEBUG)
+{
+  const bodyParser = require('body-parser')
+  // parse application/x-www-form-urlencoded
+  app.use(bodyParser.urlencoded({ extended: false }))
+  // parse application/json
+  app.use(bodyParser.json())
+  //DEBUG
+  app.post('/DEBUG', async (req, res) => {
+    try{
+      const result = await handleEvent(req.body);
+      res.json(result);
+    }
+    catch(err){
+      console.error(err);
+      res.status(500).end();
+    };
+  });
+}
 
 // event handler
 async function handleEvent(event) {
@@ -63,6 +84,23 @@ async function handleEvent(event) {
       case 'help': return helpMsg;
     }})() || helpMsg;
   }
+  else if(msg.endsWith(cmdsfx))
+  {
+    const s = msg.substring(0, msg.length-cmdsfxlen).trim();
+    const [results] = await db.query(`SELECT reply, weight FROM random_reply
+      WHERE input=?`, [s]);
+    const sW=results.reduce((s,a)=>s+a.weight,0);
+    if(sW===0) return Promise.resolve(null);
+    text = (()=>{
+      const seed = sW*Math.random();
+      let cV = 0;
+      for(const {reply, weight} of results)
+      {
+        cV += weight;
+        if(cV>seed) return reply;
+      }
+    })();
+  }
   else if (msg[0] == '\\' ) {
     //method
     if (msg.substring(1,5) == 'exp(') {
@@ -76,7 +114,8 @@ async function handleEvent(event) {
     text = `Hello, you sent a message with length=${msg.length}`;
   }
   // use reply API
-  return client.replyMessage(event.replyToken, {type:'text', text});
+  return DEBUG? {type:'text', text}:
+    client.replyMessage(event.replyToken, {type:'text', text});
 }
 
 // listen on port
